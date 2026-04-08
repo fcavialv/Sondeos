@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Sondeos">
+<title>Registro de Sondeos</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface2: #F0EDE8;
+    --border: #E2DDD8;
+    --border2: #C8C3BC;
+    --text: #1A1714;
+    --text2: #6B6560;
+    --text3: #A09A94;
+    --teal: #1A7A5E;
+    --teal-light: #E8F5F0;
+    --blue: #1A5C8A;
+    --blue-light: #E8F2F9;
+    --coral: #8A3A1A;
+    --coral-light: #F9EDE8;
+    --amber: #7A5A10;
+    --amber-light: #F9F3E0;
+    --radius: 16px;
+    --radius-sm: 10px;
+    --font: 'DM Sans', sans-serif;
+    --mono: 'DM Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--bg); font-family: var(--font); color: var(--text); }
+  .screen { display: none; min-height: 100vh; }
+  .screen.active { display: flex; flex-direction: column; }
+
+  #screen-login { align-items: center; justify-content: flex-start; padding: 0; }
+  .login-hero { width: 100%; background: var(--surface); padding: 3rem 2rem 2rem; text-align: center; border-bottom: 1px solid var(--border); }
+  .logo { width: 64px; height: 64px; background: var(--teal); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; }
+  .login-hero h1 { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; }
+  .login-hero p { font-size: 14px; color: var(--text2); margin-top: 4px; }
+  .login-body { width: 100%; padding: 1.5rem; flex: 1; }
+  .login-body h2 { font-size: 12px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); margin-bottom: 0.75rem; }
+  .users-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .user-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1rem; text-align: center; cursor: pointer; transition: all 0.18s; }
+  .user-card:active { transform: scale(0.97); background: var(--surface2); }
+  .avatar { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem; font-size: 16px; font-weight: 600; }
+  .av-teal { background: var(--teal-light); color: var(--teal); }
+  .av-blue { background: var(--blue-light); color: var(--blue); }
+  .av-coral { background: var(--coral-light); color: var(--coral); }
+  .av-amber { background: var(--amber-light); color: var(--amber); }
+  .user-card .uname { font-size: 14px; font-weight: 500; }
+  .user-card .urole { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .btn-ghost { width: 100%; padding: 13px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); font-family: var(--font); font-size: 14px; color: var(--text2); cursor: pointer; transition: all 0.15s; margin-top: 8px; }
+  .btn-ghost:active { background: var(--surface2); }
+  .btn-ghost.doctor { background: var(--teal-light); color: var(--teal); border-color: transparent; font-weight: 500; margin-top: 16px; }
+
+  .topbar { display: flex; align-items: center; gap: 10px; padding: 1rem 1rem 0.75rem; background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+  .back { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-family: var(--font); font-size: 13px; color: var(--text2); cursor: pointer; }
+  .back:active { background: var(--surface2); }
+  .topbar-info { flex: 1; }
+  .topbar-title { font-size: 15px; font-weight: 600; }
+  .topbar-sub { font-size: 12px; color: var(--text3); margin-top: 1px; }
+  .who-pill { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 4px 10px; font-size: 12px; color: var(--text2); font-weight: 500; }
+
+  .tabs { display: flex; padding: 10px 12px; gap: 6px; background: var(--surface); border-bottom: 1px solid var(--border); }
+  .tab { flex: 1; padding: 8px 4px; text-align: center; font-size: 13px; font-family: var(--font); border-radius: 8px; cursor: pointer; color: var(--text2); border: 1px solid transparent; background: none; transition: all 0.15s; }
+  .tab.active { background: var(--teal); color: #fff; font-weight: 500; }
+
+  .content { flex: 1; padding: 1rem; overflow-y: auto; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 12px; }
+  .card-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); margin-bottom: 1rem; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .form-row.full { grid-template-columns: 1fr; }
+  .field label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 4px; font-weight: 500; }
+  .field input, .field textarea {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 15px; font-family: var(--font);
+    background: var(--bg); color: var(--text); outline: none;
+    -webkit-appearance: none;
+  }
+  .field input:focus, .field textarea:focus { border-color: var(--teal); background: var(--surface); }
+  .field .unit { font-size: 11px; color: var(--text3); margin-top: 3px; font-family: var(--mono); }
+  .field textarea { resize: none; }
+
+  .btn-primary { width: 100%; padding: 14px; background: var(--teal); color: #fff; border: none; border-radius: var(--radius-sm); font-family: var(--font); font-size: 16px; font-weight: 600; cursor: pointer; transition: opacity 0.15s; }
+  .btn-primary:active { opacity: 0.8; }
+  .btn-primary:disabled { opacity: 0.5; }
+
+  .day-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+  .day-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; cursor: pointer; background: var(--surface2); }
+  .day-head .dt { font-size: 14px; font-weight: 600; }
+  .day-head .dm { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .day-head .chev { color: var(--text3); font-size: 12px; transition: transform 0.2s; }
+  .day-head.open .chev { transform: rotate(180deg); }
+  .day-rows { display: none; }
+  .day-rows.open { display: block; }
+  .rec-row { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--border); }
+  .rec-time { font-family: var(--mono); font-size: 13px; color: var(--text2); min-width: 40px; padding-top: 1px; }
+  .rec-vals { flex: 1; }
+  .rec-pill { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 500; margin-right: 4px; margin-bottom: 3px; }
+  .pill-blue { background: var(--blue-light); color: var(--blue); }
+  .pill-teal { background: var(--teal-light); color: var(--teal); }
+  .rec-note { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .rec-who { font-size: 11px; color: var(--text3); text-align: right; }
+
+  .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.85rem; text-align: center; }
+  .stat .sv { font-size: 20px; font-weight: 600; font-family: var(--mono); }
+  .stat .sl { font-size: 10px; color: var(--text3); margin-top: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
+  .bars { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; margin-bottom: 12px; }
+  .bars-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); margin-bottom: 0.75rem; }
+  .bars-chart { display: flex; align-items: flex-end; gap: 6px; height: 90px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+  .bar-val { font-size: 9px; color: var(--text3); font-family: var(--mono); }
+  .bar-fill { width: 100%; background: var(--teal); border-radius: 4px 4px 0 0; opacity: 0.75; }
+  .bar-day { font-size: 9px; color: var(--text3); }
+
+  .doc-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .doc-filters { padding: 1rem; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; gap: 8px; align-items: flex-end; flex-wrap: wrap; }
+  .doc-filters .field { flex: 1; min-width: 130px; }
+  .doc-filters label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); margin-bottom: 4px; }
+  .doc-filters input { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: var(--font); background: var(--bg); color: var(--text); outline: none; -webkit-appearance: none; }
+  .btn-apply { padding: 9px 16px; background: var(--teal); color: #fff; border: none; border-radius: var(--radius-sm); font-family: var(--font); font-size: 13px; font-weight: 600; cursor: pointer; }
+  .doc-scroll { flex: 1; overflow: auto; padding: 1rem; }
+  .doc-legend { display: flex; gap: 12px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .doc-legend span { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text2); }
+  .ldot { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .med-wrap { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; background: var(--surface); margin-bottom: 12px; }
+  .med-scroll { overflow-x: auto; }
+  table.med { border-collapse: collapse; min-width: 500px; width: 100%; font-size: 12px; }
+  table.med th { background: var(--surface2); padding: 8px 10px; text-align: center; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text2); border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); white-space: nowrap; }
+  table.med th:first-child { text-align: left; min-width: 80px; position: sticky; left: 0; z-index: 2; background: var(--surface2); }
+  table.med td { padding: 8px 10px; text-align: center; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); vertical-align: middle; }
+  table.med td:first-child { font-size: 10px; font-weight: 600; color: var(--text2); text-align: left; white-space: nowrap; background: var(--surface2); position: sticky; left: 0; z-index: 1; font-family: var(--mono); }
+  table.med tr:last-child td { border-bottom: none; }
+  table.med .total-row td { background: var(--teal-light) !important; font-weight: 600; }
+  table.med .total-row td:first-child { background: var(--teal-light) !important; }
+  .mpill { display: inline-block; padding: 2px 7px; border-radius: 5px; font-size: 11px; font-weight: 600; }
+  .mpill-o { background: var(--blue-light); color: var(--blue); }
+  .mpill-p { background: var(--teal-light); color: var(--teal); }
+  .doc-summary { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+  .doc-summary-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text3); margin-bottom: 0.75rem; }
+  .sum-grid { display: flex; gap: 1.25rem; flex-wrap: wrap; }
+  .sum-item .sv { font-size: 18px; font-weight: 600; font-family: var(--mono); }
+  .sum-item .sl { font-size: 11px; color: var(--text3); margin-top: 1px; }
+
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: none; align-items: flex-end; justify-content: center; z-index: 100; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--surface); border-radius: 20px 20px 0 0; padding: 1.5rem; width: 100%; max-width: 500px; }
+  .modal h2 { font-size: 17px; font-weight: 600; margin-bottom: 1.25rem; }
+  .modal .field { margin-bottom: 12px; }
+  .modal-btns { display: flex; gap: 8px; margin-top: 1.25rem; }
+  .modal-btns button { flex: 1; padding: 12px; border-radius: var(--radius-sm); font-family: var(--font); font-size: 14px; font-weight: 500; cursor: pointer; }
+  .mbtn-cancel { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); }
+  .mbtn-ok { background: var(--teal); border: none; color: #fff; font-weight: 600; }
+  .color-pick { display: flex; gap: 8px; margin-top: 6px; }
+  .cdot { width: 32px; height: 32px; border-radius: 10px; cursor: pointer; border: 2px solid transparent; transition: border-color 0.15s; }
+  .cdot.sel { border-color: var(--text); }
+  .cdot.av-teal { background: var(--teal); }
+  .cdot.av-blue { background: var(--blue); }
+  .cdot.av-coral { background: var(--coral); }
+  .cdot.av-amber { background: var(--amber); }
+
+  .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--text); color: var(--surface); padding: 11px 22px; border-radius: 100px; font-size: 14px; font-weight: 500; transition: transform 0.3s cubic-bezier(.34,1.56,.64,1); z-index: 200; white-space: nowrap; pointer-events: none; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .loading { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 2rem; color: var(--text3); font-size: 13px; }
+  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .empty { text-align: center; padding: 2.5rem 1rem; color: var(--text3); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="login-hero">
+    <div class="logo"><svg viewBox="0 0 32 32" fill="none" width="32" height="32"><circle cx="16" cy="16" r="13" fill="rgba(255,255,255,0.2)"/><path d="M16 8v8l5 3" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="16" cy="16" r="2.5" fill="#fff"/></svg></div>
+    <h1>Registro de Sondeos</h1>
+    <p id="login-patient">Cargando...</p>
+  </div>
+  <div class="login-body">
+    <h2>¿Quién eres?</h2>
+    <div id="users-grid" class="users-grid"></div>
+    <button class="btn-ghost" onclick="openAddUser()">+ Agregar usuario</button>
+    <button class="btn-ghost doctor" onclick="goDoctor()">Informe para el médico</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="screen-main" class="screen">
+  <div class="topbar">
+    <button class="back" onclick="logout()">← Salir</button>
+    <div class="topbar-info">
+      <div class="topbar-title">Registro de Sondeos</div>
+      <div class="topbar-sub" id="topbar-patient"></div>
+    </div>
+    <div class="who-pill" id="who-pill"></div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('nuevo')">Nuevo</button>
+    <button class="tab" onclick="showTab('historial')">Historial</button>
+    <button class="tab" onclick="showTab('resumen')">Resumen</button>
+  </div>
+  <div class="content">
+    <div id="tab-nuevo">
+      <div class="card">
+        <div class="card-label">Datos del sondeo</div>
+        <div class="form-row">
+          <div class="field"><label>Fecha</label><input type="date" id="inp-fecha"></div>
+          <div class="field"><label>Hora</label><input type="time" id="inp-hora"></div>
+        </div>
+        <div class="form-row">
+          <div class="field">
+            <label>Orina extraída</label>
+            <input type="number" id="inp-orina" placeholder="0" min="0" step="5" inputmode="numeric">
+            <div class="unit">mililitros (ml)</div>
+          </div>
+          <div class="field">
+            <label>Peso neto pañal</label>
+            <input type="number" id="inp-panal" placeholder="0" min="0" step="1" inputmode="numeric">
+            <div class="unit">gramos (g)</div>
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="field">
+            <label>Observaciones (opcional)</label>
+            <textarea id="inp-notas" rows="2" placeholder="Color, resistencia, otras notas..."></textarea>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-guardar" onclick="guardarRegistro()">Guardar registro</button>
+    </div>
+    <div id="tab-historial" style="display:none;"><div id="historial-content"></div></div>
+    <div id="tab-resumen" style="display:none;">
+      <div class="stats-row" id="stats-row"></div>
+      <div class="bars" id="bars-area"></div>
+      <div class="doc-summary" id="totales-area"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DOCTOR -->
+<div id="screen-doctor" class="screen">
+  <div class="topbar">
+    <button class="back" onclick="exitDoctor()">← Volver</button>
+    <div class="topbar-info">
+      <div class="topbar-title">Informe médico</div>
+      <div class="topbar-sub" id="doc-patient-name"></div>
+    </div>
+  </div>
+  <div class="doc-wrap">
+    <div class="doc-filters">
+      <div class="field"><label>Desde</label><input type="date" id="doc-from"></div>
+      <div class="field"><label>Hasta</label><input type="date" id="doc-to"></div>
+      <button class="btn-apply" onclick="renderDocTable()">Aplicar</button>
+    </div>
+    <div class="doc-scroll">
+      <div class="doc-legend">
+        <span><span class="ldot" style="background:var(--blue);"></span>Orina catéter (ml)</span>
+        <span><span class="ldot" style="background:var(--teal);"></span>Pañal (g)</span>
+      </div>
+      <div class="med-wrap"><div class="med-scroll"><div id="doc-table-area"></div></div></div>
+      <div id="doc-summary"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h2>Agregar usuario</h2>
+    <div class="field"><label>Nombre</label><input type="text" id="modal-name" placeholder="Ej: Tía, Enfermera..."></div>
+    <div class="field"><label>Iniciales (2 letras)</label><input type="text" id="modal-init" placeholder="Ej: TI" maxlength="2"></div>
+    <div class="field">
+      <label>Color</label>
+      <div class="color-pick">
+        <div class="cdot av-teal sel" data-c="av-teal" onclick="pickColor(this)"></div>
+        <div class="cdot av-blue" data-c="av-blue" onclick="pickColor(this)"></div>
+        <div class="cdot av-coral" data-c="av-coral" onclick="pickColor(this)"></div>
+        <div class="cdot av-amber" data-c="av-amber" onclick="pickColor(this)"></div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="mbtn-ok" onclick="saveUser()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxZcuQ_rjzm6bxfh-aVgL2ZbCqOhB1QoRnT7L8kz_8EvIIzgrkQjM8jcympQEXTJwN4og/exec';
+const PATIENT = 'Mi hija';
+const SLOTS = ['08:00','11:00','14:00','17:00','20:00','23:00'];
+
+let users = [];
+let records = [];
+let currentUser = null;
+let selColor = 'av-teal';
+
+async function init() {
+  document.getElementById('login-patient').textContent = PATIENT;
+  document.getElementById('topbar-patient').textContent = PATIENT;
+  document.getElementById('doc-patient-name').textContent = 'Paciente: ' + PATIENT;
+  showScreen('screen-login');
+  document.getElementById('users-grid').innerHTML = '<div class="loading"><div class="spinner"></div>Cargando...</div>';
+  try {
+    const udata = await sheetsGet('getUsers');
+    if (Array.isArray(udata) && udata.length > 0) {
+      users = udata.map(r => ({ id: String(r[0]), name: r[1], initials: r[2], color: r[3] }));
+    }
+    if (users.length === 0) {
+      users = [
+        { id: 'u1', name: 'Mamá', initials: 'MA', color: 'av-teal' },
+        { id: 'u2', name: 'Papá', initials: 'PA', color: 'av-blue' },
+        { id: 'u3', name: 'Ayudante', initials: 'AY', color: 'av-coral' }
+      ];
+      await saveUsersToSheets();
+    }
+  } catch(e) {
+    users = [
+      { id: 'u1', name: 'Mamá', initials: 'MA', color: 'av-teal' },
+      { id: 'u2', name: 'Papá', initials: 'PA', color: 'av-blue' },
+      { id: 'u3', name: 'Ayudante', initials: 'AY', color: 'av-coral' }
+    ];
+  }
+  try {
+    const data = await sheetsGet('get');
+    if (Array.isArray(data) && data.length > 1) {
+      records = data.slice(1).map(r => ({
+        id: String(r[0]), fecha: r[1], hora: r[2],
+        orina: r[3] !== '' && r[3] !== null ? parseFloat(r[3]) : null,
+        panal: r[4] !== '' && r[4] !== null ? parseFloat(r[4]) : null,
+        notas: r[5] || null, userName: r[6], userColor: r[7], ts: r[8]
+      }));
+      records.sort((a,b) => (a.fecha+a.hora).localeCompare(b.fecha+b.hora));
+    }
+  } catch(e) {}
+  renderLogin();
+}
+
+async function sheetsGet(action) {
+  const res = await fetch(SCRIPT_URL + '?action=' + action + '&t=' + Date.now());
+  return res.json();
+}
+
+async function sheetsPost(body) {
+  const res = await fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify(body) });
+  return res.json();
+}
+
+async function saveUsersToSheets() {
+  try { await sheetsPost({ action: 'saveUsers', users }); } catch(e) {}
+}
+
+function showScreen(id) {
+  ['screen-login','screen-main','screen-doctor'].forEach(s => {
+    document.getElementById(s).classList.toggle('active', s === id);
+  });
+}
+
+function renderLogin() {
+  document.getElementById('users-grid').innerHTML = users.map(u => `
+    <div class="user-card" onclick="selectUser('${u.id}')">
+      <div class="avatar ${u.color}">${u.initials}</div>
+      <div class="uname">${u.name}</div>
+      <div class="urole">Registrador</div>
+    </div>`).join('');
+}
+
+function selectUser(id) {
+  currentUser = users.find(u => u.id === id);
+  document.getElementById('who-pill').textContent = currentUser.name;
+  showScreen('screen-main');
+  setNow();
+  showTab('nuevo');
+}
+
+function logout() { currentUser = null; showScreen('screen-login'); }
+
+function setNow() {
+  const now = new Date();
+  document.getElementById('inp-fecha').value = now.toISOString().slice(0,10);
+  document.getElementById('inp-hora').value = now.toTimeString().slice(0,5);
+  document.getElementById('inp-orina').value = '';
+  document.getElementById('inp-panal').value = '';
+  document.getElementById('inp-notas').value = '';
+}
+
+function showTab(tab) {
+  ['nuevo','historial','resumen'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach((el,i) => {
+    el.classList.toggle('active', ['nuevo','historial','resumen'][i] === tab);
+  });
+  if (tab === 'historial') renderHistorial();
+  if (tab === 'resumen') renderResumen();
+}
+
+async function guardarRegistro() {
+  const fecha = document.getElementById('inp-fecha').value;
+  const hora = document.getElementById('inp-hora').value;
+  const orina = parseFloat(document.getElementById('inp-orina').value);
+  const panal = parseFloat(document.getElementById('inp-panal').value);
+  const notas = document.getElementById('inp-notas').value.trim();
+  if (!fecha || !hora) { toast('Ingresa fecha y hora'); return; }
+  if (isNaN(orina) && isNaN(panal)) { toast('Ingresa al menos un valor'); return; }
+  const btn = document.getElementById('btn-guardar');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  const record = {
+    action: 'add',
+    id: Date.now().toString(), fecha, hora,
+    orina: isNaN(orina) ? '' : orina,
+    panal: isNaN(panal) ? '' : panal,
+    notas: notas || '',
+    userName: currentUser.name, userColor: currentUser.color,
+    ts: new Date().toISOString()
+  };
+  try {
+    await sheetsPost(record);
+    records.push({ ...record, orina: isNaN(orina)?null:orina, panal: isNaN(panal)?null:panal, notas: notas||null });
+    records.sort((a,b)=>(a.fecha+a.hora).localeCompare(b.fecha+b.hora));
+    toast('Registro guardado');
+    setNow();
+  } catch(e) {
+    toast('Error al guardar. Verifica conexión.');
+  }
+  btn.disabled = false; btn.textContent = 'Guardar registro';
+}
+
+function renderHistorial() {
+  const c = document.getElementById('historial-content');
+  if (!records.length) { c.innerHTML = '<div class="empty">Aún no hay registros</div>'; return; }
+  const byDay = {};
+  records.forEach(r => { if(!byDay[r.fecha]) byDay[r.fecha]=[]; byDay[r.fecha].push(r); });
+  const days = Object.keys(byDay).sort().reverse();
+  c.innerHTML = days.map(day => {
+    const recs = byDay[day].sort((a,b)=>a.hora.localeCompare(b.hora));
+    const to = recs.reduce((s,r)=>s+(r.orina||0),0);
+    const tp = recs.reduce((s,r)=>s+(r.panal||0),0);
+    return `<div class="day-block">
+      <div class="day-head" onclick="toggleDay(this)">
+        <div><div class="dt">${fmtDate(day)}</div><div class="dm">${recs.length} registros · ${to} ml · ${tp} g pañal</div></div>
+        <span class="chev">▼</span>
+      </div>
+      <div class="day-rows">
+        ${recs.map(r=>`<div class="rec-row">
+          <div class="rec-time">${r.hora}</div>
+          <div class="rec-vals">
+            ${r.orina!==null?`<span class="rec-pill pill-blue">${r.orina} ml</span>`:''}
+            ${r.panal!==null?`<span class="rec-pill pill-teal">${r.panal} g</span>`:''}
+            ${r.notas?`<div class="rec-note">${r.notas}</div>`:''}
+          </div>
+          <div class="rec-who">${r.userName}</div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleDay(h) { h.classList.toggle('open'); h.nextElementSibling.classList.toggle('open'); }
+
+function renderResumen() {
+  if (!records.length) {
+    document.getElementById('stats-row').innerHTML = '';
+    document.getElementById('bars-area').innerHTML = '<div class="empty">Sin datos aún</div>';
+    document.getElementById('totales-area').innerHTML = '';
+    return;
+  }
+  const hoy = new Date().toISOString().slice(0,10);
+  const hoyO = records.filter(r=>r.fecha===hoy).reduce((s,r)=>s+(r.orina||0),0);
+  const totalO = records.reduce((s,r)=>s+(r.orina||0),0);
+  const totalP = records.reduce((s,r)=>s+(r.panal||0),0);
+  const dias = new Set(records.map(r=>r.fecha)).size;
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat"><div class="sv">${hoyO}</div><div class="sl">ml hoy</div></div>
+    <div class="stat"><div class="sv">${dias>0?Math.round(totalO/dias):0}</div><div class="sl">ml prom/día</div></div>
+    <div class="stat"><div class="sv">${records.length}</div><div class="sl">registros</div></div>`;
+  const byDay={};
+  records.forEach(r=>{if(!byDay[r.fecha])byDay[r.fecha]=0;byDay[r.fecha]+=(r.orina||0);});
+  const days=Object.keys(byDay).sort().slice(-7), vals=days.map(d=>byDay[d]), maxV=Math.max(...vals,1);
+  document.getElementById('bars-area').innerHTML=`
+    <div class="bars-label">Orina diaria — últimos 7 días</div>
+    <div class="bars-chart">${days.map((d,i)=>`
+      <div class="bar-col">
+        <div class="bar-val">${vals[i]}</div>
+        <div class="bar-fill" style="height:${Math.round((vals[i]/maxV)*72)+4}px;"></div>
+        <div class="bar-day">${d.slice(5).replace('-','/')}</div>
+      </div>`).join('')}
+    </div>`;
+  document.getElementById('totales-area').innerHTML=`
+    <div class="doc-summary-title">Totales globales</div>
+    <div class="sum-grid">
+      <div class="sum-item"><div class="sv">${totalO} ml</div><div class="sl">Total orina</div></div>
+      <div class="sum-item"><div class="sv">${totalP} g</div><div class="sl">Total pañal</div></div>
+      <div class="sum-item"><div class="sv">${dias}</div><div class="sl">Días registrados</div></div>
+    </div>`;
+}
+
+function goDoctor() {
+  showScreen('screen-doctor');
+  const now = new Date();
+  const to = now.toISOString().slice(0,10);
+  const from = new Date(now); from.setDate(from.getDate()-13);
+  document.getElementById('doc-from').value = from.toISOString().slice(0,10);
+  document.getElementById('doc-to').value = to;
+  renderDocTable();
+}
+
+function exitDoctor() { showScreen('screen-login'); }
+
+function renderDocTable() {
+  const from = document.getElementById('doc-from').value;
+  const to = document.getElementById('doc-to').value;
+  const area = document.getElementById('doc-table-area');
+  const sumArea = document.getElementById('doc-summary');
+  const filtered = records.filter(r => r.fecha >= from && r.fecha <= to);
+  if (!filtered.length) { area.innerHTML='<div class="empty">No hay registros en este período</div>'; sumArea.innerHTML=''; return; }
+  const days = [...new Set(filtered.map(r=>r.fecha))].sort();
+  function nearSlot(hora) {
+    const [h,m]=hora.split(':').map(Number),mins=h*60+m;
+    let best=SLOTS[0],bestD=Infinity;
+    SLOTS.forEach(s=>{const[sh,sm]=s.split(':').map(Number),d=Math.abs(mins-(sh*60+sm));if(d<bestD){bestD=d;best=s;}});
+    return best;
+  }
+  const byDS={};
+  days.forEach(d=>{byDS[d]={};SLOTS.forEach(s=>byDS[d][s]=[]);});
+  filtered.forEach(r=>{const sl=nearSlot(r.hora);if(byDS[r.fecha])byDS[r.fecha][sl].push(r);});
+  const dayTotals={};
+  days.forEach(d=>{
+    const recs=filtered.filter(r=>r.fecha===d);
+    dayTotals[d]={o:recs.reduce((s,r)=>s+(r.orina||0),0),p:recs.reduce((s,r)=>s+(r.panal||0),0),n:recs.length};
+  });
+  const sd=d=>{const[y,m,dd]=d.split('-');const ms=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];return`${+dd}/${ms[+m-1]}`;};
+  let html=`<table class="med"><thead><tr><th>Sondeo</th>${days.map(d=>`<th>${sd(d)}</th>`).join('')}</tr></thead><tbody>`;
+  SLOTS.forEach((slot,idx)=>{
+    html+=`<tr><td>N°${idx+1} ~${slot}</td>`;
+    days.forEach(d=>{
+      const recs=byDS[d][slot];
+      if(!recs||!recs.length){html+=`<td><span style="color:var(--text3)">—</span></td>`;}
+      else{
+        const o=recs.reduce((s,r)=>s+(r.orina||0),0);
+        const p=recs.reduce((s,r)=>s+(r.panal||0),0);
+        html+=`<td><span style="font-size:10px;color:var(--text3);display:block">${recs[0].hora}</span>${o>0?`<span class="mpill mpill-o">${o}ml</span> `:''}${p>0?`<span class="mpill mpill-p">${p}g</span>`:''}</td>`;
+      }
+    });
+    html+='</tr>';
+  });
+  html+=`<tr class="total-row"><td>Total</td>${days.map(d=>`<td><span class="mpill mpill-o">${dayTotals[d].o}ml</span> <span class="mpill mpill-p">${dayTotals[d].p}g</span></td>`).join('')}</tr>`;
+  html+='</tbody></table>';
+  area.innerHTML=html;
+  const totalO=filtered.reduce((s,r)=>s+(r.orina||0),0);
+  const totalP=filtered.reduce((s,r)=>s+(r.panal||0),0);
+  sumArea.innerHTML=`<div class="doc-summary" style="margin-top:12px;">
+    <div class="doc-summary-title">Resumen del período</div>
+    <div class="sum-grid">
+      <div class="sum-item"><div class="sv">${totalO} ml</div><div class="sl">Total orina</div></div>
+      <div class="sum-item"><div class="sv">${days.length>0?Math.round(totalO/days.length):0} ml</div><div class="sl">Promedio/día</div></div>
+      <div class="sum-item"><div class="sv">${totalP} g</div><div class="sl">Total pañal</div></div>
+      <div class="sum-item"><div class="sv">${days.length}</div><div class="sl">Días</div></div>
+      <div class="sum-item"><div class="sv">${filtered.length}</div><div class="sl">Sondeos</div></div>
+    </div>
+  </div>`;
+}
+
+function fmtDate(str) {
+  const [y,m,d]=str.split('-');
+  const ms=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  const ds=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const date=new Date(+y,+m-1,+d);
+  const today=new Date();today.setHours(0,0,0,0);
+  const yd=new Date(today);yd.setDate(today.getDate()-1);
+  if(+date===+today)return`Hoy, ${+d} de ${ms[+m-1]}`;
+  if(+date===+yd)return`Ayer, ${+d} de ${ms[+m-1]}`;
+  return`${ds[date.getDay()]} ${+d} de ${ms[+m-1]} ${y}`;
+}
+
+function openAddUser() { document.getElementById('overlay').classList.add('open'); }
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+function pickColor(el) { document.querySelectorAll('.cdot').forEach(d=>d.classList.remove('sel')); el.classList.add('sel'); selColor=el.dataset.c; }
+async function saveUser() {
+  const name=document.getElementById('modal-name').value.trim();
+  const init=document.getElementById('modal-init').value.trim().toUpperCase();
+  if(!name||!init){toast('Ingresa nombre e iniciales');return;}
+  users.push({id:'u'+Date.now(),name,initials:init,color:selColor});
+  await saveUsersToSheets();
+  closeModal(); renderLogin();
+  document.getElementById('modal-name').value='';
+  document.getElementById('modal-init').value='';
+}
+
+function toast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+init();
+</script>
+</body>
+</html>
